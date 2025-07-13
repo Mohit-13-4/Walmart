@@ -1,0 +1,242 @@
+import React, { useState, useEffect } from 'react';
+import Header from './components/Header';
+import CategoryNav from './components/CategoryNav';
+import ProductDetails from './components/ProductDetails';
+import Cart from './components/Cart';
+import ComparisonModal from './components/ComparisonModal';
+import SaleFlashBanners from './components/SaleFlashBanners';
+import InfiniteScroll from './components/InfiniteScroll';
+import AIAssistant from './components/AIAssistant';
+import AuthFlow from './components/AuthFlow';
+import CheckoutStepper from './components/CheckoutStepper';
+import { allProducts } from './data/products';
+import { filterProducts } from './utils/searchUtils';
+import './styles/walmart.css';
+import './styles/senior.css';
+
+function App() {
+  const [currentView, setCurrentView] = useState('home');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [comparisonProduct, setComparisonProduct] = useState(null);
+  const [userHistory, setUserHistory] = useState([]);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [filteredProducts, setFilteredProducts] = useState(allProducts);
+
+  useEffect(() => {
+    const savedCart = JSON.parse(localStorage.getItem('walmart-cart')) || [];
+    setCartItems(savedCart);
+    
+    const savedHistory = JSON.parse(localStorage.getItem('walmart-history')) || [];
+    setUserHistory(savedHistory);
+    
+    const savedUser = JSON.parse(localStorage.getItem('walmart-user') || 'null');
+    if (savedUser) {
+      setCurrentUser(savedUser);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('walmart-cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  useEffect(() => {
+    const filtered = filterProducts(allProducts, searchQuery, selectedCategory);
+    setFilteredProducts(filtered);
+  }, [searchQuery, selectedCategory]);
+
+  const handleBannerClick = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentView('home');
+  };
+
+  const handleAuthSuccess = (user: any) => {
+    setCurrentUser(user);
+    setIsAuthModalOpen(false);
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('walmart-user');
+    localStorage.removeItem('walmart-auth-token');
+    setCurrentUser(null);
+  };
+
+  const handleCheckout = () => {
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setIsCheckoutOpen(true);
+    setIsCartOpen(false);
+  };
+
+  const handleOrderComplete = () => {
+    setCartItems([]);
+    localStorage.removeItem('walmart-cart');
+    setIsCheckoutOpen(false);
+    setCurrentView('home');
+  };
+
+  const handleAddToCart = (product, quantity = 1) => {
+    setCartItems(prev => {
+      const existingItem = prev.find(item => item.id === product.id);
+      if (existingItem) {
+        return prev.map(item =>
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity }];
+    });
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    setCartItems(prev => prev.filter(item => item.id !== productId));
+  };
+
+  const handleUpdateQuantity = (productId, quantity) => {
+    if (quantity <= 0) {
+      handleRemoveFromCart(productId);
+      return;
+    }
+    setCartItems(prev =>
+      prev.map(item =>
+        item.id === productId ? { ...item, quantity } : item
+      )
+    );
+  };
+
+  const handleNavigate = (path: string) => {
+    if (path === '/cart') {
+      setIsCartOpen(true);
+    } else {
+      setCurrentView('home');
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentView('search');
+  };
+
+  const getTotalItems = () => {
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const getTotalPrice = () => {
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  return (
+    <div className="walmart-app">
+      <Header 
+        cartItemCount={getTotalItems()}
+        onCartClick={() => setIsCartOpen(true)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={(e) => {
+          e.preventDefault();
+          handleSearch(searchQuery);
+        }}
+        currentUser={currentUser}
+        onSignInClick={() => setIsAuthModalOpen(true)}
+        onVoiceClick={() => {}} // Voice is handled by AI Assistant
+      />
+      
+      <SaleFlashBanners onBannerClick={handleBannerClick} />
+      
+      <CategoryNav 
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
+
+      <main className="main-content">
+        {currentView === 'home' && (
+          <InfiniteScroll 
+            initialProducts={filteredProducts}
+            category={selectedCategory}
+            searchQuery={searchQuery}
+            onProductClick={(product) => {
+              setSelectedProduct(product);
+              setCurrentView('product');
+            }}
+            onAddToCart={handleAddToCart}
+          />
+        )}
+
+        {currentView === 'search' && (
+          <InfiniteScroll 
+            initialProducts={filteredProducts}
+            category={selectedCategory}
+            searchQuery={searchQuery}
+            onProductClick={(product) => {
+              setSelectedProduct(product);
+              setCurrentView('product');
+            }}
+            onAddToCart={handleAddToCart}
+          />
+        )}
+
+        {currentView === 'product' && selectedProduct && (
+          <ProductDetails 
+            product={selectedProduct}
+            onAddToCart={handleAddToCart}
+            onBack={() => setCurrentView('home')}
+            onCompareClick={setComparisonProduct}
+          />
+        )}
+      </main>
+
+      <AIAssistant
+        onAddToCart={handleAddToCart}
+        onSearch={handleSearch}
+        onNavigate={handleNavigate}
+        onRemoveFromCart={handleRemoveFromCart}
+        cartItems={cartItems}
+        userHistory={userHistory}
+      />
+
+      {isCartOpen && (
+        <Cart 
+          items={cartItems}
+          onClose={() => setIsCartOpen(false)}
+          onUpdateQuantity={handleUpdateQuantity}
+          onRemoveItem={handleRemoveFromCart}
+          total={getTotalPrice()}
+          onCheckout={handleCheckout}
+        />
+      )}
+
+      {comparisonProduct && (
+        <ComparisonModal 
+          product={comparisonProduct}
+          onClose={() => setComparisonProduct(null)}
+        />
+      )}
+
+      {isAuthModalOpen && (
+        <AuthFlow 
+          onClose={() => setIsAuthModalOpen(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      )}
+
+      {isCheckoutOpen && (
+        <CheckoutStepper 
+          cartItems={cartItems}
+          total={getTotalPrice()}
+          onClose={() => setIsCheckoutOpen(false)}
+          onOrderComplete={handleOrderComplete}
+        />
+      )}
+    </div>
+  );
+}
+
+export default App;
