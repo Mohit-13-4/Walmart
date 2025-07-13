@@ -78,15 +78,17 @@ const Cart: React.FC<CartProps> = ({
                           onClick={() => handleQuantityChange(item.id, -1)}
                           className="quantity-btn"
                           disabled={item.quantity <= 1}
+                          aria-label="Decrease quantity"
                         >
-                          <Minus size={14} />
+                          <span style={{fontSize: '20px', fontWeight: 'bold'}}>-</span>
                         </button>
                         <span className="quantity-display">{item.quantity}</span>
                         <button 
                           onClick={() => handleQuantityChange(item.id, 1)}
                           className="quantity-btn"
+                          aria-label="Increase quantity"
                         >
-                          <Plus size={14} />
+                          <span style={{fontSize: '20px', fontWeight: 'bold'}}>+</span>
                         </button>
                       </div>
                       

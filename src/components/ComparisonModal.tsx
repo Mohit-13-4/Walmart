@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingDown, TrendingUp } from 'lucide-react';
+import { X, TrendingDown, TrendingUp, Check } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -31,15 +31,15 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ product, onClose }) =
       // Simulate delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Generate mock comparison data
+      // Generate more realistic comparison data
       const basePrice = product.price;
-      const amazonPrice = Math.round(basePrice + (Math.random() * 2000 - 1000));
-      const flipkartPrice = Math.round(basePrice + (Math.random() * 1500 - 750));
+      const amazonPrice = Math.round(basePrice + (Math.random() * 1500 - 500));
+      const flipkartPrice = Math.round(basePrice + (Math.random() * 1200 - 400));
       
       setComparisonData({
         walmart: basePrice,
-        amazon: Math.max(amazonPrice, basePrice * 0.8),
-        flipkart: Math.max(flipkartPrice, basePrice * 0.85)
+        amazon: Math.max(amazonPrice, basePrice * 0.85),
+        flipkart: Math.max(flipkartPrice, basePrice * 0.88)
       });
       
       setLoading(false);
@@ -79,7 +79,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ product, onClose }) =
       <div className="comparison-modal">
         <div className="comparison-header">
           <h3>Price Comparison</h3>
-          <button onClick={onClose} className="close-button">
+          <button onClick={onClose} className="close-button comparison-close-btn">
             <X size={20} />
           </button>
         </div>
@@ -87,7 +87,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ product, onClose }) =
         <div className="comparison-content">
           <div className="product-info-comparison">
             <img src={product.image} alt={product.name} className="comparison-product-image" />
-            <h4>{product.name}</h4>
+            <h4 className="comparison-product-title">{product.name}</h4>
           </div>
 
           {loading ? (
@@ -101,14 +101,19 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ product, onClose }) =
                 <div className="store-name">Store</div>
                 <div className="price">Price</div>
                 <div className="delivery">Delivery</div>
-                <div className="savings">Vs Others</div>
+                <div className="savings">Savings</div>
               </div>
 
               <div className={`comparison-row ${getBestPrice() === 'walmart' ? 'best-price' : ''}`}>
                 <div className="store-info">
                   <span className="store-logo">🛒</span>
                   <span className="store-name">Walmart</span>
-                  {getBestPrice() === 'walmart' && <span className="best-badge">Best Price</span>}
+                  {getBestPrice() === 'walmart' && (
+                    <span className="best-badge">
+                      <Check size={14} />
+                      Best Price
+                    </span>
+                  )}
                 </div>
                 <div className="price">{formatPrice(comparisonData.walmart)}</div>
                 <div className="delivery free">FREE</div>
@@ -128,7 +133,12 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ product, onClose }) =
                 <div className="store-info">
                   <span className="store-logo">📦</span>
                   <span className="store-name">Amazon</span>
-                  {getBestPrice() === 'amazon' && <span className="best-badge">Best Price</span>}
+                  {getBestPrice() === 'amazon' && (
+                    <span className="best-badge">
+                      <Check size={14} />
+                      Best Price
+                    </span>
+                  )}
                 </div>
                 <div className="price">{formatPrice(comparisonData.amazon)}</div>
                 <div className="delivery paid">₹99</div>
@@ -146,7 +156,12 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ product, onClose }) =
                 <div className="store-info">
                   <span className="store-logo">🛍️</span>
                   <span className="store-name">Flipkart</span>
-                  {getBestPrice() === 'flipkart' && <span className="best-badge">Best Price</span>}
+                  {getBestPrice() === 'flipkart' && (
+                    <span className="best-badge">
+                      <Check size={14} />
+                      Best Price
+                    </span>
+                  )}
                 </div>
                 <div className="price">{formatPrice(comparisonData.flipkart)}</div>
                 <div className="delivery paid">₹40</div>
@@ -167,6 +182,15 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ product, onClose }) =
           )}
 
           <div className="comparison-footer">
+            <div className="comparison-summary">
+              <h4>Summary</h4>
+              <p>
+                {getBestPrice() === 'walmart' 
+                  ? `Walmart offers the best price at ${formatPrice(comparisonData?.walmart || 0)}!`
+                  : `You can save up to ₹${comparisonData ? getSavings(comparisonData.walmart, Math.min(comparisonData.amazon, comparisonData.flipkart)).amount : 0} by shopping at Walmart.`
+                }
+              </p>
+            </div>
             <p className="comparison-note">
               * Prices and availability may vary. Last updated: {new Date().toLocaleDateString()}
             </p>

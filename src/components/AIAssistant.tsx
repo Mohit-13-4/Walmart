@@ -36,7 +36,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -78,6 +78,51 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     
     // Enhanced AI processing with more intelligent responses
     
+    // Specific product searches (improved)
+    const specificProductMatches = {
+      'samsung s23': allProducts.filter(p => 
+        p.name.toLowerCase().includes('samsung') && 
+        (p.name.toLowerCase().includes('s23') || p.name.toLowerCase().includes('galaxy'))
+      ),
+      'samsung galaxy': allProducts.filter(p => 
+        p.name.toLowerCase().includes('samsung') && p.name.toLowerCase().includes('galaxy')
+      ),
+      'iphone': allProducts.filter(p => p.name.toLowerCase().includes('iphone')),
+      'oneplus': allProducts.filter(p => p.name.toLowerCase().includes('oneplus')),
+      'laptop': allProducts.filter(p => p.name.toLowerCase().includes('laptop')),
+      'tv': allProducts.filter(p => p.name.toLowerCase().includes('tv')),
+      'headphones': allProducts.filter(p => p.name.toLowerCase().includes('headphone')),
+      'rice': allProducts.filter(p => p.name.toLowerCase().includes('rice')),
+      'pasta': allProducts.filter(p => p.name.toLowerCase().includes('pasta')),
+      'oil': allProducts.filter(p => p.name.toLowerCase().includes('oil')),
+      'milk': allProducts.filter(p => p.name.toLowerCase().includes('milk')),
+      'bread': allProducts.filter(p => p.name.toLowerCase().includes('bread')),
+      'sofa': allProducts.filter(p => p.name.toLowerCase().includes('sofa')),
+      'table': allProducts.filter(p => p.name.toLowerCase().includes('table')),
+      'chair': allProducts.filter(p => p.name.toLowerCase().includes('chair')),
+      'bed': allProducts.filter(p => p.name.toLowerCase().includes('bed')),
+      'shirt': allProducts.filter(p => p.name.toLowerCase().includes('shirt')),
+      'pants': allProducts.filter(p => p.name.toLowerCase().includes('pants')),
+      'shoes': allProducts.filter(p => p.name.toLowerCase().includes('shoes'))
+    };
+
+    // Check for specific product matches first
+    for (const [searchTerm, products] of Object.entries(specificProductMatches)) {
+      if (input.includes(searchTerm) && products.length > 0) {
+        const actions = products.slice(0, 3).map(product => ({
+          type: 'add_to_cart' as const,
+          label: `Add ${product.name} (₹${product.price})`,
+          data: product
+        }));
+
+        addAIMessage(
+          `I found ${products.length} ${searchTerm} products. Here are the top options:`,
+          actions
+        );
+        return;
+      }
+    }
+
     // Cart management - Remove items
     if (input.includes('remove') && (input.includes('cart') || input.includes('delete'))) {
       const itemToRemove = cartItems.find(item => 
@@ -249,6 +294,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           actions
         );
       } else {
+        // If no direct matches, perform a broader search
         onSearch(searchTerm);
         addAIMessage(
           `Searching for "${searchTerm}"...`,
@@ -307,7 +353,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
     // Default intelligent response
     addAIMessage(
-      `I understand you're looking for something, but I need a bit more information. You can ask me to:\n\n• Find specific products\n• Add or remove items from your cart\n• Search by price range\n• Answer product questions\n\nTry being more specific, like "Find smartphones under ₹20,000" or "Add rice to my cart"`
+      `I understand you're looking for something, but I need a bit more information. You can ask me to:\n\n• Find specific products (like "Samsung S23" or "iPhone")\n• Add or remove items from your cart\n• Search by price range\n• Answer product questions\n\nTry being more specific, like "Find smartphones under ₹20,000" or "Add rice to my cart"`
     );
   };
 
@@ -324,7 +370,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     }
   };
 
-  const handleActionClick = (action: Message['actions'][0]) => {
+  const handleActionClick = (action: any) => {
     switch (action.type) {
       case 'add_to_cart':
         onAddToCart(action.data);
@@ -345,14 +391,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   const startListening = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         handleUserMessage(transcript);
         setIsListening(false);

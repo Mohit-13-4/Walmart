@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Star, Shield, Truck, RotateCcw, Plus, Minus } from 'lucide-react';
+import { ArrowLeft, Star, Shield, Truck, RotateCcw, Plus, Minus, MessageCircle } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -36,6 +36,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   onCompareClick 
 }) => {
   const [quantity, setQuantity] = useState(1);
+  const [showReviews, setShowReviews] = useState(false);
 
   const formatPrice = (price: number) => {
     return `₹${price.toLocaleString()}`;
@@ -58,6 +59,34 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       setQuantity(newQuantity);
     }
   };
+
+  // Mock reviews data
+  const mockReviews = [
+    {
+      id: 1,
+      user: "John D.",
+      rating: 5,
+      date: "2024-01-15",
+      title: "Excellent product!",
+      comment: "This product exceeded my expectations. Great quality and fast delivery."
+    },
+    {
+      id: 2,
+      user: "Sarah M.",
+      rating: 4,
+      date: "2024-01-10",
+      title: "Good value for money",
+      comment: "Good product overall. Minor issues but nothing major. Would recommend."
+    },
+    {
+      id: 3,
+      user: "Mike R.",
+      rating: 5,
+      date: "2024-01-08",
+      title: "Perfect!",
+      comment: "Exactly what I was looking for. Fast shipping and great customer service."
+    }
+  ];
 
   return (
     <div className="product-details">
@@ -91,7 +120,37 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
             <span className="rating-number">{product.rating}</span>
             <span className="review-count">({product.reviews} reviews)</span>
+            <button 
+              onClick={() => setShowReviews(!showReviews)}
+              className="view-reviews-btn"
+            >
+              <MessageCircle size={16} />
+              View Reviews
+            </button>
           </div>
+
+          {showReviews && (
+            <div className="reviews-section">
+              <h3>Customer Reviews</h3>
+              <div className="reviews-list">
+                {mockReviews.map(review => (
+                  <div key={review.id} className="review-item">
+                    <div className="review-header">
+                      <div className="review-stars">
+                        {renderStars(review.rating)}
+                      </div>
+                      <div className="review-meta">
+                        <span className="review-user">{review.user}</span>
+                        <span className="review-date">{review.date}</span>
+                      </div>
+                    </div>
+                    <h4 className="review-title">{review.title}</h4>
+                    <p className="review-comment">{review.comment}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="price-section">
             <div className="price-container-large">
@@ -129,21 +188,23 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
           <div className="quantity-section">
             <label>Quantity:</label>
-            <div className="quantity-controls">
+            <div className="quantity-controls-large">
               <button 
                 onClick={() => handleQuantityChange(-1)}
-                className="quantity-btn"
+                className="quantity-btn-large"
                 disabled={quantity <= 1}
+                aria-label="Decrease quantity"
               >
-                <Minus size={16} />
+                <span style={{fontSize: '2rem', fontWeight: 'bold', lineHeight: 1}}>-</span>
               </button>
-              <span className="quantity-display">{quantity}</span>
+              <span className="quantity-display-large">{quantity}</span>
               <button 
                 onClick={() => handleQuantityChange(1)}
-                className="quantity-btn"
+                className="quantity-btn-large"
                 disabled={quantity >= 10}
+                aria-label="Increase quantity"
               >
-                <Plus size={16} />
+                <span style={{fontSize: '2rem', fontWeight: 'bold', lineHeight: 1}}>+</span>
               </button>
             </div>
           </div>

@@ -17,24 +17,24 @@ import './styles/senior.css';
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [cartItems, setCartItems] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [cartItems, setCartItems] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [comparisonProduct, setComparisonProduct] = useState(null);
-  const [userHistory, setUserHistory] = useState([]);
+  const [comparisonProduct, setComparisonProduct] = useState<any>(null);
+  const [userHistory, setUserHistory] = useState<any[]>([]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isVoiceSearchOpen, setIsVoiceSearchOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [filteredProducts, setFilteredProducts] = useState(allProducts);
 
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem('walmart-cart')) || [];
+    const savedCart = JSON.parse(localStorage.getItem('walmart-cart') || '[]');
     setCartItems(savedCart);
     
-    const savedHistory = JSON.parse(localStorage.getItem('walmart-history')) || [];
+    const savedHistory = JSON.parse(localStorage.getItem('walmart-history') || '[]');
     setUserHistory(savedHistory);
     
     const savedUser = JSON.parse(localStorage.getItem('walmart-user') || 'null');
@@ -68,6 +68,26 @@ function App() {
     setCurrentUser(null);
   };
 
+  const handleReorderClick = () => {
+    // Show reorder functionality - could show previous orders
+    alert('Reorder functionality - showing your previous orders');
+  };
+
+  const handlePurchaseHistoryClick = () => {
+    // Show purchase history
+    alert('Purchase History - showing your order history');
+  };
+
+  const handleWalmartPlusClick = () => {
+    // Show Walmart Plus information
+    alert('Walmart+ - Premium membership benefits');
+  };
+
+  const handleProtectionPlansClick = () => {
+    // Show protection plans
+    alert('Protection & Support Plans - Extended warranty options');
+  };
+
   const handleCheckout = () => {
     if (!currentUser) {
       setIsAuthModalOpen(true);
@@ -96,7 +116,7 @@ function App() {
     localStorage.setItem('walmart-orders', JSON.stringify(orderHistory));
   };
 
-  const handleAddToCart = (product, quantity = 1) => {
+  const handleAddToCart = (product: any, quantity = 1) => {
     setCartItems(prev => {
       const existingItem = prev.find(item => item.id === product.id);
       if (existingItem) {
@@ -110,11 +130,11 @@ function App() {
     });
   };
 
-  const handleRemoveFromCart = (productId) => {
+  const handleRemoveFromCart = (productId: string) => {
     setCartItems(prev => prev.filter(item => item.id !== productId));
   };
 
-  const handleUpdateQuantity = (productId, quantity) => {
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       handleRemoveFromCart(productId);
       return;
@@ -167,6 +187,11 @@ function App() {
         currentUser={currentUser}
         onSignInClick={() => setIsAuthModalOpen(true)}
         onVoiceClick={() => setIsVoiceSearchOpen(true)}
+        onReorderClick={handleReorderClick}
+        onPurchaseHistoryClick={handlePurchaseHistoryClick}
+        onWalmartPlusClick={handleWalmartPlusClick}
+        onProtectionPlansClick={handleProtectionPlansClick}
+        onSignOutClick={handleSignOut}
       />
       
       <SaleFlashBanners onBannerClick={handleBannerClick} />
