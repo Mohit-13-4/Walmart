@@ -8,7 +8,8 @@ import SaleFlashBanners from './components/SaleFlashBanners';
 import InfiniteScroll from './components/InfiniteScroll';
 import AIAssistant from './components/AIAssistant';
 import AuthFlow from './components/AuthFlow';
-import CheckoutStepper from './components/CheckoutStepper';
+import CheckoutFlow from './components/CheckoutFlow';
+import VoiceSearch from './components/VoiceSearch';
 import { allProducts } from './data/products';
 import { filterProducts } from './utils/searchUtils';
 import './styles/walmart.css';
@@ -25,6 +26,7 @@ function App() {
   const [userHistory, setUserHistory] = useState([]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isVoiceSearchOpen, setIsVoiceSearchOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState(allProducts);
 
@@ -80,6 +82,18 @@ function App() {
     localStorage.removeItem('walmart-cart');
     setIsCheckoutOpen(false);
     setCurrentView('home');
+    
+    // Add to order history
+    const orderHistory = JSON.parse(localStorage.getItem('walmart-orders') || '[]');
+    const newOrder = {
+      id: 'WM' + Date.now(),
+      items: cartItems,
+      total: getTotalPrice(),
+      date: new Date().toISOString(),
+      status: 'Processing'
+    };
+    orderHistory.push(newOrder);
+    localStorage.setItem('walmart-orders', JSON.stringify(orderHistory));
   };
 
   const handleAddToCart = (product, quantity = 1) => {
@@ -125,6 +139,12 @@ function App() {
     setCurrentView('search');
   };
 
+  const handleVoiceCommand = (command: string) => {
+    // Process voice command through AI Assistant
+    console.log('Voice command received:', command);
+    handleSearch(command);
+  };
+
   const getTotalItems = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
@@ -146,7 +166,7 @@ function App() {
         }}
         currentUser={currentUser}
         onSignInClick={() => setIsAuthModalOpen(true)}
-        onVoiceClick={() => {}} // Voice is handled by AI Assistant
+        onVoiceClick={() => setIsVoiceSearchOpen(true)}
       />
       
       <SaleFlashBanners onBannerClick={handleBannerClick} />
@@ -202,6 +222,13 @@ function App() {
         userHistory={userHistory}
       />
 
+      {isVoiceSearchOpen && (
+        <VoiceSearch 
+          onClose={() => setIsVoiceSearchOpen(false)}
+          onCommand={handleVoiceCommand}
+        />
+      )}
+
       {isCartOpen && (
         <Cart 
           items={cartItems}
@@ -228,11 +255,12 @@ function App() {
       )}
 
       {isCheckoutOpen && (
-        <CheckoutStepper 
+        <CheckoutFlow 
           cartItems={cartItems}
           total={getTotalPrice()}
           onClose={() => setIsCheckoutOpen(false)}
           onOrderComplete={handleOrderComplete}
+          currentUser={currentUser}
         />
       )}
     </div>
