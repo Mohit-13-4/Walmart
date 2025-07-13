@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, MapPin, X, LogIn, UserPlus } from 'lucide-react';
+import GoogleIcon from './icons/GoogleIcon';
+import FacebookIcon from './icons/FacebookIcon';
 
 interface AuthUser {
   id: string;
@@ -153,8 +155,8 @@ const AuthFlow: React.FC<AuthFlowProps> = ({ onClose, onAuthSuccess }) => {
               disabled={loading}
               className="social-btn google-btn"
             >
-              <span className="social-icon">🔍</span>
-              Continue with Google
+              <GoogleIcon style={{fontSize: 22, marginBottom: 4}} />
+              <span className="social-btn-text">Continue with Google</span>
             </button>
             
             <button 
@@ -162,8 +164,8 @@ const AuthFlow: React.FC<AuthFlowProps> = ({ onClose, onAuthSuccess }) => {
               disabled={loading}
               className="social-btn facebook-btn"
             >
-              <span className="social-icon">📘</span>
-              Continue with Facebook
+              <FacebookIcon style={{fontSize: 22, marginBottom: 4}} />
+              <span className="social-btn-text">Continue with Facebook</span>
             </button>
           </div>
 
@@ -237,28 +239,6 @@ const AuthFlow: React.FC<AuthFlowProps> = ({ onClose, onAuthSuccess }) => {
               </button>
             </p>
           </div>
-
-          {locationPermission === 'pending' && (
-            <div className="location-request">
-              <div className="location-info">
-                <MapPin size={20} />
-                <div>
-                  <h4>Find Stores Near You</h4>
-                  <p>Allow location access to see nearby Walmart stores and local deals</p>
-                </div>
-              </div>
-              <button onClick={requestLocation} className="location-btn">
-                Enable Location
-              </button>
-            </div>
-          )}
-
-          {locationPermission === 'granted' && (
-            <div className="location-success">
-              <MapPin size={16} />
-              <span>Location enabled - Finding stores near you!</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
